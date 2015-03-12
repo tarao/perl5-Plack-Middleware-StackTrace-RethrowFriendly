@@ -37,4 +37,5 @@ it under the same terms as Perl itself.
 # AUTHOR
 
 TOYAMA Nao <nanto@moon.email.ne.jp>
+
 INA Lintaro <tarao.gnn@gmail.com>

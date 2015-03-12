@@ -129,6 +129,7 @@ it under the same terms as Perl itself.
 =head1 AUTHOR
 
 TOYAMA Nao E<lt>nanto@moon.email.ne.jpE<gt>
+
 INA Lintaro E<lt>tarao.gnn@gmail.comE<gt>
 
 =cut
