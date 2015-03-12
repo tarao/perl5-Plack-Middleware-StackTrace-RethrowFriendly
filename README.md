@@ -18,6 +18,10 @@ that if you catch (`eval` or `try`-`catch` for example) an error
 and rethrow (`die` or `croak` for example) it, the original stack
 trace not the rethrown one is displayed.
 
+When the response is displayed as an HTML, all the errors including
+rethrown ones are visible through the throwing point selector at the
+top of the HTML.
+
 # SEE ALSO
 
 [Plack::Middleware::StackTrace](https://metacpan.org/pod/Plack::Middleware::StackTrace)
