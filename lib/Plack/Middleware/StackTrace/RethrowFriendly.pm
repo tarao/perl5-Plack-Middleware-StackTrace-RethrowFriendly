@@ -4,6 +4,7 @@ use warnings;
 
 # core
 use Scalar::Util 'refaddr';
+use MIME::Base64 qw(encode_base64);
 
 # cpan
 use parent qw(Plack::Middleware::StackTrace);
@@ -14,20 +15,23 @@ our $VERSION = "0.01";
 sub call {
     my($self, $env) = @_;
 
-    my $trace;
+    my $trace = [];
     my $last_key = '';
     local $SIG{__DIE__} = sub {
-        my $key = _make_key($_[0]);
         # If we get the same keys, the exception may be rethrown and
         # we keep the original stacktrace.
+        my $key = _make_key($_[0]);
         if ($key ne $last_key) {
-            $trace = $Plack::Middleware::StackTrace::StackTraceClass->new(
-                indent => 1,
-                message => munge_error($_[0], [ caller ]),
-                ignore_package => __PACKAGE__,
-            );
             $last_key = $key;
+            $trace = [];
         }
+
+        push @$trace, $Plack::Middleware::StackTrace::StackTraceClass->new(
+            indent => 1,
+            message => munge_error($_[0], [ caller ]),
+            ignore_package => __PACKAGE__,
+        );
+
         die @_;
     };
 
@@ -39,9 +43,10 @@ sub call {
         _error('text/plain', $caught, 'no_trace');
     };
 
-    if ($trace && $self->should_show_trace($caught, $last_key, $res)) {
-        my $text = $trace->as_string;
-        my $html = $trace->as_html;
+    if (scalar @$trace && $self->should_show_trace($caught, $last_key, $res)) {
+        my $text = $trace->[0]->as_string;
+        my $html = @$trace > 1
+            ? _multi_trace_html(@$trace) : $trace->[0]->as_html;
         $env->{'plack.stacktrace.text'} = $text;
         $env->{'plack.stacktrace.html'} = $html;
         $env->{'psgi.errors'}->print($text) unless $self->no_print_errors;
@@ -53,6 +58,7 @@ sub call {
     # $trace has refs to Standalone.pm's args ($conn etc.) and
     # prevents garbage collection to be happening.
     undef $trace;
+    undef $last_key;
 
     return $res;
 }
@@ -86,6 +92,100 @@ sub _error {
     $content = utf8_safe($content);
     $content = no_trace_error($content) if $no_trace;
     return [ 500, [ 'Content-Type' => "$type; charset=utf-8" ], [ $content ] ];
+}
+
+sub _multi_trace_html {
+    my (@trace) = @_;
+
+    require Devel::StackTrace::AsHTML;
+    my $msg = Devel::StackTrace::AsHTML::encode_html(
+        $trace[0]->frame(0)->as_string(1),
+    );
+
+    my @data_uris = map { _trace_as_data_uri($_) } @trace;
+    my @links = map {
+        sprintf
+            '<a class="link" href="%s" target="trace">#%s</a>',
+            $data_uris[$_],
+            $_;
+    } (0..$#data_uris);
+
+    my $css = << '----';
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+div#links {
+  z-index: 100;
+  position: absolute;
+  top: 0;
+  height: 30px;
+}
+#content {
+  z-index: 50;
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 30px 0 4px 0;
+  box-sizing: border-box;
+}
+iframe#trace {
+  border: none;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+a.selected {
+  color: #000;
+  font-weight: bold;
+  text-decoration: none;
+}
+----
+
+    sprintf << '----', $msg, $css, join(' ', @links), $data_uris[0];
+<!DOCTYPE html>
+<html>
+<head>
+<title>Error: %s</title>
+<style type="text/css">
+%s
+</style>
+<script>
+(function(d) {
+  var select = function() {
+    Array.prototype.forEach.call(d.querySelectorAll('a.link'), function(a) {
+        a.className = a.className.replace(/\s*\bselected\b/, '');
+    });
+    this.className += ' selected';
+  };
+  d.addEventListener('DOMContentLoaded', function() {
+    Array.prototype.forEach.call(d.querySelectorAll('a.link'), function(a) {
+        a.addEventListener('click', select);
+    });
+    select.call(d.querySelector('a.link'));
+  });
+})(document);
+</script>
+</head>
+<body>
+<div id="links">
+  Throws: %s
+</div>
+<div id="content">
+  <iframe src="%s" id="trace" name="trace"></iframe>
+</div>
+</body>
+</html>
+----
+}
+
+sub _trace_as_data_uri ($) {
+    my $html = $_[0]->as_html;
+    return 'data:text/html;charset=utf-8;base64,'.encode_base64($html);
 }
 
 1;
