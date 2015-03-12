@@ -1,5 +1,7 @@
 Revision history for Perl extension Plack-Middleware-StackTrace-RethrowFriendly
 
 {{$NEXT}}
+
+0.01 2015-03-12T11:10:39Z
     - original version
 
