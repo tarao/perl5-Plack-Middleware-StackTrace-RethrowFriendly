@@ -9,6 +9,8 @@ use Scalar::Util 'refaddr';
 use parent qw(Plack::Middleware::StackTrace);
 use Try::Tiny;
 
+our $VERSION = "0.01";
+
 sub call {
     my($self, $env) = @_;
 
@@ -88,3 +90,45 @@ sub _error {
 
 1;
 __END__
+
+=head1 NAME
+
+Plack::Middleware::StackTrace::RethrowFriendly - Display the original stack trace for rethrown errors
+
+=head1 SYNOPSIS
+
+  use Plack::Builder;
+  builder {
+      enable "StackTrace::RethrowFriendly";
+      $app;
+  };
+
+=head1 DESCRIPTION
+
+This middleware is the same as L<Plack::Middleware::StackTrace> except
+that if you catch (C<eval> or C<try>-C<catch> for example) the error
+and rethrow (C<die> or C<croak> for example) it, the original stack
+trace not the rethrown one is displayed.
+
+=head1 SEE ALSO
+
+L<Plack::Middleware::StackTrace>
+
+=head1 ACKNOWLEDGMENT
+
+This implementation is a fork from a patch to
+L<Plack::Middleware::StackTrace|https://github.com/plack/Plack/compare/original-stacktrace> by Jesse Luehrs.
+
+=head1 LICENSE
+
+Copyright (C) TOYAMA Nao and INA Lintaro
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=head1 AUTHOR
+
+TOYAMA Nao E<lt>nanto@moon.email.ne.jpE<gt>
+INA Lintaro E<lt>tarao.gnn@gmail.comE<gt>
+
+=cut
