@@ -14,7 +14,7 @@ Plack::Middleware::StackTrace::RethrowFriendly - Display the original stack trac
 # DESCRIPTION
 
 This middleware is the same as [Plack::Middleware::StackTrace](https://metacpan.org/pod/Plack::Middleware::StackTrace) except
-that if you catch (`eval` or `try`-`catch` for example) the error
+that if you catch (`eval` or `try`-`catch` for example) an error
 and rethrow (`die` or `croak` for example) it, the original stack
 trace not the rethrown one is displayed.
 
