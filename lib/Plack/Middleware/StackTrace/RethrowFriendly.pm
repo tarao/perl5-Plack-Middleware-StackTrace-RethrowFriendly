@@ -15,22 +15,21 @@ our $VERSION = "0.01";
 sub call {
     my($self, $env) = @_;
 
-    my $trace = [];
     my $last_key = '';
+    my %seen;
     local $SIG{__DIE__} = sub {
+        my $key = _make_key($_[0]);
+        my $list = $seen{$key} || [];
+
         # If we get the same keys, the exception may be rethrown and
         # we keep the original stacktrace.
-        my $key = _make_key($_[0]);
-        if ($key ne $last_key) {
-            $last_key = $key;
-            $trace = [];
-        }
-
-        push @$trace, $Plack::Middleware::StackTrace::StackTraceClass->new(
+        push @$list, $Plack::Middleware::StackTrace::StackTraceClass->new(
             indent => 1,
             message => munge_error($_[0], [ caller ]),
             ignore_package => __PACKAGE__,
         );
+        $seen{$key} = $list;
+        $last_key = $key;
 
         die @_;
     };
@@ -43,6 +42,7 @@ sub call {
         _error('text/plain', $caught, 'no_trace');
     };
 
+    my $trace = $seen{$last_key} || [];
     if (scalar @$trace && $self->should_show_trace($caught, $last_key, $res)) {
         my $text = $trace->[0]->as_string;
         my $html = @$trace > 1
@@ -54,10 +54,10 @@ sub call {
             ? _error('text/html', $html)
             : _error('text/plain', $text);
     }
-    # break $trace here since $SIG{__DIE__} holds the ref to it, and
+    # break %seen here since $SIG{__DIE__} holds the ref to it, and
     # $trace has refs to Standalone.pm's args ($conn etc.) and
     # prevents garbage collection to be happening.
-    undef $trace;
+    undef %seen;
     undef $last_key;
 
     return $res;
