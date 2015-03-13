@@ -70,7 +70,7 @@
          "web" : "https://github.com/tarao/perl5-Plack-Middleware-StackTrace-RethrowFriendly"
       }
    },
-   "version" : "0.01",
+   "version" : "0.02",
    "x_authority" : "cpan:TARAO",
    "x_contributors" : [
       "tarao <tarao.gnn@gmail.com>"

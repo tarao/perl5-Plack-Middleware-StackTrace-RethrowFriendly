@@ -28,8 +28,7 @@ top of the HTML.
 
 # ACKNOWLEDGMENT
 
-This implementation is a fork from a patch to
-[Plack::Middleware::StackTrace](https://github.com/plack/Plack/compare/original-stacktrace) by Jesse Luehrs.
+This implementation is a fork from [a patch to Plack::Middleware::StackTrace](https://github.com/plack/Plack/compare/original-stacktrace) by Jesse Luehrs.
 
 # LICENSE
 
