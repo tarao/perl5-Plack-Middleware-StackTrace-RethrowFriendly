@@ -220,8 +220,7 @@ L<Plack::Middleware::StackTrace>
 
 =head1 ACKNOWLEDGMENT
 
-This implementation is a fork from a patch to
-L<Plack::Middleware::StackTrace|https://github.com/plack/Plack/compare/original-stacktrace> by Jesse Luehrs.
+This implementation is a fork from L<a patch to Plack::Middleware::StackTrace|https://github.com/plack/Plack/compare/original-stacktrace> by Jesse Luehrs.
 
 =head1 LICENSE
 
