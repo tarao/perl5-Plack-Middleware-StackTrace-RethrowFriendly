@@ -26,6 +26,7 @@ sub call {
             indent => 1,
             message => munge_error($_[0], [ caller ]),
             ignore_package => __PACKAGE__,
+            no_refs => 1,
         );
         $seen{$key} = $list;
         $last_key = $key;
