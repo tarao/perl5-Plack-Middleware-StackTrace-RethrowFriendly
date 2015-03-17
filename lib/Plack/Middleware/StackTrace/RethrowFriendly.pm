@@ -15,7 +15,6 @@ our $VERSION = "0.02";
 sub call {
     my($self, $env) = @_;
 
-    my $last_key = '';
     my %seen;
     local $SIG{__DIE__} = sub {
         my $key = _make_key($_[0]);
@@ -29,7 +28,6 @@ sub call {
             ignore_package => __PACKAGE__,
         );
         $seen{$key} = $list;
-        $last_key = $key;
 
         die @_;
     };
@@ -42,8 +40,8 @@ sub call {
         _error('text/plain', $caught, 'no_trace');
     };
 
-    my $trace = $seen{$last_key} || [];
-    if (scalar @$trace && $self->should_show_trace($caught, $last_key, $res)) {
+    my $trace = $seen{_make_key($caught)} || [];
+    if (scalar @$trace && $self->should_show_trace($caught, $res)) {
         my $text = $trace->[0]->as_string;
         my $html = @$trace > 1
             ? _multi_trace_html(@$trace) : $trace->[0]->as_html;
@@ -58,18 +56,14 @@ sub call {
     # $trace has refs to Standalone.pm's args ($conn etc.) and
     # prevents garbage collection to be happening.
     undef %seen;
-    undef $last_key;
 
     return $res;
 }
 
 sub should_show_trace {
-    my ($self, $err, $key, $res) = @_;
-    if ($err) {
-        return _make_key($err) eq $key;
-    } else {
-        return $self->force && ref $res eq 'ARRAY' && $res->[0] == 500;
-    }
+    my ($self, $err, $res) = @_;
+    return 1 if $err;
+    return $self->force && ref $res eq 'ARRAY' && $res->[0] == 500;
 }
 
 sub no_trace_error { Plack::Middleware::StackTrace::no_trace_error(@_) }
