@@ -15,7 +15,7 @@ our $VERSION = "0.03";
 sub call {
     my($self, $env) = @_;
 
-    my %seen;
+    my ($last_key, %seen);
     local $SIG{__DIE__} = sub {
         my $key = _make_key($_[0]);
         my $list = $seen{$key} || [];
@@ -28,6 +28,7 @@ sub call {
             ignore_package => __PACKAGE__,
         );
         $seen{$key} = $list;
+        $last_key = $key;
 
         die @_;
     };
@@ -40,7 +41,8 @@ sub call {
         _error('text/plain', $caught, 'no_trace');
     };
 
-    my $trace = $seen{_make_key($caught)} || [];
+    my $trace = $self->force ? $seen{$last_key} : $seen{_make_key($caught)};
+    $trace ||= [];
     if (scalar @$trace && $self->should_show_trace($caught, $res)) {
         my $text = $trace->[0]->as_string;
         my $html = @$trace > 1
