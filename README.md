@@ -14,21 +14,46 @@ Plack::Middleware::StackTrace::RethrowFriendly - Display the original stack trac
 # DESCRIPTION
 
 This middleware is the same as [Plack::Middleware::StackTrace](https://metacpan.org/pod/Plack::Middleware::StackTrace) except
-that if you catch (`eval` or `try`-`catch` for example) an error
-and rethrow (`die` or `croak` for example) it, the original stack
-trace not the rethrown one is displayed.
+that additional information for rethrown errors are available for HTML
+stack trace.
 
-When the response is displayed as an HTML, all the errors including
+If you catch (`eval` or `try`-`catch` for example) an error and
+rethrow (`die` or `croak` for example) it, all the errors including
 rethrown ones are visible through the throwing point selector at the
 top of the HTML.
+
+For example, consider the following code.
+
+    sub fail {
+        die 'foo';
+    }
+
+    sub another {
+        fail();
+    }
+
+    builder {
+        enable 'StackTrace';
+
+        sub {
+            eval { fail() }; # (1)
+            another();       # (2)
+
+            return [ 200, [ 'Content-Type' => 'text/plain' ], [ 'OK' ] ];
+        };
+    };
+
+[Plack::Middleware::StackTrace](https://metacpan.org/pod/Plack::Middleware::StackTrace) blames (1) since it is the first
+place where `'foo'` is raised.  This behavior may be misleading if
+the real culprit was something done in `another`.
+
+`Plack::Middleware::StackTrace::RethrowFriendly` displays stack
+traces of both (1) and (2) in each page and (1) is selected by
+default.
 
 # SEE ALSO
 
 [Plack::Middleware::StackTrace](https://metacpan.org/pod/Plack::Middleware::StackTrace)
-
-# ACKNOWLEDGMENT
-
-This implementation is a fork from [a patch to Plack::Middleware::StackTrace](https://github.com/plack/Plack/compare/original-stacktrace) by Jesse Luehrs.
 
 # LICENSE
 

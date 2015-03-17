@@ -10,7 +10,7 @@ use MIME::Base64 qw(encode_base64);
 use parent qw(Plack::Middleware::StackTrace);
 use Try::Tiny;
 
-our $VERSION = "0.02";
+our $VERSION = "0.03";
 
 sub call {
     my($self, $env) = @_;
