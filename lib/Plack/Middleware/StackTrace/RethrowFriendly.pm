@@ -200,21 +200,17 @@ Plack::Middleware::StackTrace::RethrowFriendly - Display the original stack trac
 =head1 DESCRIPTION
 
 This middleware is the same as L<Plack::Middleware::StackTrace> except
-that if you catch (C<eval> or C<try>-C<catch> for example) an error
-and rethrow (C<die> or C<croak> for example) it, the original stack
-trace not the rethrown one is displayed.
+that additional information for rethrown errors are available for HTML
+stack trace.
 
-When the response is displayed as an HTML, all the errors including
+If you catch (C<eval> or C<try>-C<catch> for example) an error and
+rethrow (C<die> or C<croak> for example) it, all the errors including
 rethrown ones are visible through the throwing point selector at the
 top of the HTML.
 
 =head1 SEE ALSO
 
 L<Plack::Middleware::StackTrace>
-
-=head1 ACKNOWLEDGMENT
-
-This implementation is a fork from L<a patch to Plack::Middleware::StackTrace|https://github.com/plack/Plack/compare/original-stacktrace> by Jesse Luehrs.
 
 =head1 LICENSE
 
