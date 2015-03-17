@@ -208,6 +208,35 @@ rethrow (C<die> or C<croak> for example) it, all the errors including
 rethrown ones are visible through the throwing point selector at the
 top of the HTML.
 
+For example, consider the following code.
+
+  sub fail {
+      die 'foo';
+  }
+
+  sub another {
+      fail();
+  }
+
+  builder {
+      enable 'StackTrace';
+
+      sub {
+          eval { fail() }; # (1)
+          another();       # (2)
+
+          return [ 200, [ 'Content-Type' => 'text/plain' ], [ 'OK' ] ];
+      };
+  };
+
+L<Plack::Middleware::StackTrace> blames (1) since it is the first
+place where C<'foo'> is raised.  This behavior may be misleading if
+the real culprit was something done in C<another>.
+
+C<Plack::Middleware::StackTrace::RethrowFriendly> displays stack
+traces of both (1) and (2) in each page and (1) is selected by
+default.
+
 =head1 SEE ALSO
 
 L<Plack::Middleware::StackTrace>
